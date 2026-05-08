@@ -3,6 +3,10 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import ProcessedModule, RawContent
 
@@ -61,10 +65,10 @@ def module_view(request):
     )
 
 
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def admin_raw_content_list(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
-
     raw_contents = RawContent.objects.order_by("-created_at")
     data = [
         {
@@ -76,13 +80,13 @@ def admin_raw_content_list(request):
         }
         for item in raw_contents
     ]
-    return JsonResponse(data, safe=False, status=200)
+    return Response(data, status=200)
 
 
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def admin_processed_modules_list(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
-
     modules = ProcessedModule.objects.select_related("raw_content").order_by("-id")
     data = [
         {
@@ -94,27 +98,27 @@ def admin_processed_modules_list(request):
         }
         for item in modules
     ]
-    return JsonResponse(data, safe=False, status=200)
+    return Response(data, status=200)
 
 
 @csrf_exempt
+@api_view(["PATCH"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def admin_processed_module_detail(request, module_id):
-    if request.method != "PATCH":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
-
     try:
-        payload = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+        payload = request.data
+    except Exception:
+        return Response({"error": "Invalid JSON payload"}, status=400)
 
     if "is_published" not in payload:
-        return JsonResponse({"error": "Field 'is_published' is required"}, status=400)
+        return Response({"error": "Field 'is_published' is required"}, status=400)
 
     module = get_object_or_404(ProcessedModule, pk=module_id)
     module.is_published = bool(payload["is_published"])
     module.save(update_fields=["is_published"])
 
-    return JsonResponse(
+    return Response(
         {
             "id": module.id,
             "is_published": module.is_published,

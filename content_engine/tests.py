@@ -1077,12 +1077,26 @@ class DemoCompletePaymentTests(APITestCase):
 class BillingPlansAPITests(APITestCase):
     url = "/api/content-engine/billing/plans/"
 
+    @override_settings(
+        CHAT_DAILY_MESSAGE_LIMIT=200,
+        CHAT_GO_DAILY_MESSAGE_LIMIT=400,
+        CHAT_PLUS_DAILY_MESSAGE_LIMIT=2000,
+        CHAT_PRO_DAILY_MESSAGE_LIMIT=0,
+        CONTENT_DAILY_LIMIT=5,
+        CONTENT_GO_DAILY_LIMIT=15,
+        CONTENT_PLUS_DAILY_LIMIT=50,
+        CONTENT_PRO_DAILY_LIMIT=0,
+    )
     def test_lists_plans_anonymously(self):
         r = self.client.get(self.url)
         self.assertEqual(r.status_code, status.HTTP_200_OK)
         data = r.json()
         codes = [p["code"] for p in data["plans"]]
         self.assertEqual(codes, ["free", "go", "plus", "pro"])
+        free_plan = data["plans"][0]
+        pro_plan = data["plans"][-1]
+        self.assertEqual(free_plan["daily_limits"], {"chat": 200, "content": 5})
+        self.assertEqual(pro_plan["daily_limits"], {"chat": None, "content": None})
         self.assertIn("demo_payment_enabled", data)
 
 

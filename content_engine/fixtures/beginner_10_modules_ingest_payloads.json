@@ -1,0 +1,742 @@
+[
+  {
+    "source_url": "https://example.com/beginner-a1/self-introduction-basics-001",
+    "title": "Self Introduction Basics",
+    "raw_text": "This lesson helps beginners introduce themselves using simple sentences. Learners practice saying their name, country, job or study status, and basic personal information. It focuses on am, is, are and common greeting patterns for first meetings.",
+    "category": "beginner-self-introduction",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A1",
+      "track": "english-foundation",
+      "module_code": "BEG-01"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-01",
+        "title_en": "Self Introduction Basics",
+        "title_id": "Perkenalan Diri Dasar",
+        "objective_en": "Introduce yourself with short, correct sentences.",
+        "objective_id": "Memperkenalkan diri dengan kalimat pendek yang benar.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "to be (am/is/are)",
+          "subject pronouns"
+        ],
+        "vocab_list": [
+          "name",
+          "country",
+          "city",
+          "student",
+          "teacher",
+          "engineer",
+          "age",
+          "hello",
+          "nice to meet you",
+          "from",
+          "live",
+          "speak",
+          "learn",
+          "introduce",
+          "classmate"
+        ],
+        "conversation_scenario": "Introducing yourself to a new classmate.",
+        "practice_steps": [
+          "Explain model sentences for self introduction.",
+          "Guided pronunciation drill of key phrases.",
+          "Pair role-play introducing yourself and asking 3 questions.",
+          "Reflection: write 5 lines about your identity."
+        ],
+        "mini_assessment": {
+          "type": "speaking",
+          "instruction": "Record a 60-second self introduction with name, origin, and role.",
+          "success_criteria": [
+            "Uses am/is/are correctly",
+            "At least 5 target vocabulary words",
+            "Clear and understandable delivery"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Which sentence is correct?",
+            "options": [
+              "I is from Indonesia.",
+              "I am from Indonesia.",
+              "I are from Indonesia."
+            ],
+            "correctOptionIndex": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a1/family-and-people-002",
+    "title": "Family and People Around Me",
+    "raw_text": "Learners describe family members and people around them with simple adjectives and possession words. The lesson introduces my, your, his, her and basic sentence structures with have and has.",
+    "category": "beginner-family",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A1",
+      "track": "english-foundation",
+      "module_code": "BEG-02"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-02",
+        "title_en": "Family and People Around Me",
+        "title_id": "Keluarga dan Orang Sekitar",
+        "objective_en": "Describe family members with basic vocabulary and possession.",
+        "objective_id": "Mendeskripsikan anggota keluarga dengan kosakata dasar dan bentuk kepemilikan.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "possessive adjectives (my/your/his/her)",
+          "has/have"
+        ],
+        "vocab_list": [
+          "father",
+          "mother",
+          "brother",
+          "sister",
+          "uncle",
+          "aunt",
+          "grandmother",
+          "grandfather",
+          "kind",
+          "friendly",
+          "tall",
+          "short",
+          "young",
+          "old",
+          "family"
+        ],
+        "conversation_scenario": "Talking about your family to a new friend.",
+        "practice_steps": [
+          "Explain family tree vocabulary and model sentences.",
+          "Guided matching activity: family member and description.",
+          "Role-play: introduce three family members.",
+          "Reflection: write who you are closest to and why."
+        ],
+        "mini_assessment": {
+          "type": "integrated",
+          "instruction": "Write 6 sentences and present 3 of them about your family.",
+          "success_criteria": [
+            "Correct use of my/your/his/her",
+            "At least 8 target vocabulary words",
+            "Understandable spoken delivery"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Choose the correct sentence:",
+            "options": [
+              "She have two brothers.",
+              "She has two brothers.",
+              "She having two brothers."
+            ],
+            "correctOptionIndex": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a1/daily-routines-simple-present-003",
+    "title": "Daily Routines with Simple Present",
+    "raw_text": "This module introduces simple present for daily habits. Learners build positive, negative, and question forms and use adverbs of frequency to talk about routines.",
+    "category": "beginner-daily-routine",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A1-A2",
+      "track": "english-foundation",
+      "module_code": "BEG-03"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-03",
+        "title_en": "Daily Routines with Simple Present",
+        "title_id": "Rutinitas Harian dengan Simple Present",
+        "objective_en": "Talk about your daily routine using simple present accurately.",
+        "objective_id": "Membahas rutinitas harian dengan simple present secara akurat.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "simple present (+/-/?)",
+          "adverbs of frequency"
+        ],
+        "vocab_list": [
+          "wake up",
+          "brush teeth",
+          "take a shower",
+          "have breakfast",
+          "go to school",
+          "go to work",
+          "start",
+          "finish",
+          "usually",
+          "always",
+          "sometimes",
+          "never",
+          "morning",
+          "afternoon",
+          "evening"
+        ],
+        "conversation_scenario": "Explaining your weekday routine.",
+        "practice_steps": [
+          "Explain simple present patterns and common errors.",
+          "Guided sentence transformation (positive, negative, question).",
+          "Pair interview: ask and answer routine questions.",
+          "Reflection: compare your routine today vs weekends."
+        ],
+        "mini_assessment": {
+          "type": "writing-speaking",
+          "instruction": "Write 8 routine sentences and present your schedule in 1 minute.",
+          "success_criteria": [
+            "Correct verb form with he/she/it",
+            "Uses at least 2 adverbs of frequency",
+            "Logical sequence of activities"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Which sentence is correct?",
+            "options": [
+              "He go to work at 8.",
+              "He goes to work at 8.",
+              "He going to work at 8."
+            ],
+            "correctOptionIndex": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a1/time-days-schedules-004",
+    "title": "Time, Days, and Schedules",
+    "raw_text": "Learners practice telling time, saying days and months, and making simple schedule plans. It uses prepositions of time and short planning conversations.",
+    "category": "beginner-time-schedule",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A1-A2",
+      "track": "english-foundation",
+      "module_code": "BEG-04"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-04",
+        "title_en": "Time, Days, and Schedules",
+        "title_id": "Waktu, Hari, dan Jadwal",
+        "objective_en": "Tell time and arrange simple plans with correct time expressions.",
+        "objective_id": "Menyebutkan waktu dan menyusun rencana sederhana dengan ekspresi waktu yang benar.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "prepositions of time (at/on/in)",
+          "simple present questions for schedules"
+        ],
+        "vocab_list": [
+          "o'clock",
+          "half past",
+          "quarter",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "weekend",
+          "meeting",
+          "class",
+          "appointment",
+          "morning",
+          "night",
+          "calendar"
+        ],
+        "conversation_scenario": "Planning a study session with a friend.",
+        "practice_steps": [
+          "Explain time expressions and at/on/in usage.",
+          "Guided listening: identify time and day from short dialogues.",
+          "Role-play: make and confirm a schedule.",
+          "Reflection: write your weekly mini-plan."
+        ],
+        "mini_assessment": {
+          "type": "speaking",
+          "instruction": "Create a 3-event weekly schedule and explain it orally.",
+          "success_criteria": [
+            "Correct at/on/in usage",
+            "Correct day/time pronunciation",
+            "Clear and complete plan"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Which preposition is correct: '___ Monday at 8 PM'?",
+            "options": [
+              "in",
+              "on",
+              "at"
+            ],
+            "correctOptionIndex": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/places-directions-005",
+    "title": "Home, Places, and Directions",
+    "raw_text": "This lesson trains learners to describe places and give directions in simple English. It introduces there is/there are and common place prepositions for everyday navigation.",
+    "category": "beginner-places-directions",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-05"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-05",
+        "title_en": "Home, Places, and Directions",
+        "title_id": "Rumah, Tempat, dan Arah",
+        "objective_en": "Describe places and give simple directions confidently.",
+        "objective_id": "Mendeskripsikan tempat dan memberi arah sederhana dengan percaya diri.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "there is / there are",
+          "prepositions of place"
+        ],
+        "vocab_list": [
+          "living room",
+          "kitchen",
+          "bedroom",
+          "hospital",
+          "bank",
+          "supermarket",
+          "turn left",
+          "turn right",
+          "go straight",
+          "next to",
+          "behind",
+          "in front of",
+          "near",
+          "across from",
+          "corner"
+        ],
+        "conversation_scenario": "Asking and giving directions in a city area.",
+        "practice_steps": [
+          "Explain place vocabulary and direction phrases.",
+          "Guided map labeling activity.",
+          "Role-play: tourist asks for directions.",
+          "Reflection: describe your neighborhood in 5 lines."
+        ],
+        "mini_assessment": {
+          "type": "map-speaking",
+          "instruction": "Give directions from station to hospital using a simple map.",
+          "success_criteria": [
+            "Uses at least 4 direction phrases",
+            "Uses there is/there are correctly",
+            "Directions are logical and complete"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Choose the best direction phrase:",
+            "options": [
+              "Go straight and turn left.",
+              "Go straight and lefting.",
+              "Go straight and to left."
+            ],
+            "correctOptionIndex": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/food-ordering-006",
+    "title": "Food, Drinks, and Ordering",
+    "raw_text": "Learners practice food vocabulary and ordering expressions in cafes or restaurants. This module introduces countable and uncountable nouns, some/any, and polite ordering with would like.",
+    "category": "beginner-food-ordering",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-06"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-06",
+        "title_en": "Food, Drinks, and Ordering",
+        "title_id": "Makanan, Minuman, dan Memesan",
+        "objective_en": "Order food politely and use some/any correctly.",
+        "objective_id": "Memesan makanan dengan sopan dan menggunakan some/any secara tepat.",
+        "estimated_hours": 2.0,
+        "grammar_target": [
+          "countable vs uncountable nouns",
+          "some/any",
+          "would like"
+        ],
+        "vocab_list": [
+          "menu",
+          "dish",
+          "rice",
+          "bread",
+          "water",
+          "juice",
+          "coffee",
+          "tea",
+          "bill",
+          "order",
+          "waiter",
+          "customer",
+          "hungry",
+          "delicious",
+          "table"
+        ],
+        "conversation_scenario": "Ordering food at a cafe.",
+        "practice_steps": [
+          "Explain ordering expressions and noun categories.",
+          "Guided substitution drill for menu items.",
+          "Role-play customer and waiter conversation.",
+          "Reflection: write your ideal meal order."
+        ],
+        "mini_assessment": {
+          "type": "role-play",
+          "instruction": "Perform a 2-minute ordering dialogue including greeting, order, and payment.",
+          "success_criteria": [
+            "Uses would like politely",
+            "Correct some/any usage in context",
+            "Conversation flows naturally"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Choose the correct sentence:",
+            "options": [
+              "I would like some water.",
+              "I would like any water.",
+              "I would likes some water."
+            ],
+            "correctOptionIndex": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/shopping-prices-007",
+    "title": "Shopping and Prices",
+    "raw_text": "This module covers practical shopping conversations including asking prices, sizes, and product preferences. Learners use this/that/these/those and how much/how many in store interactions.",
+    "category": "beginner-shopping",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-07"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-07",
+        "title_en": "Shopping and Prices",
+        "title_id": "Belanja dan Harga",
+        "objective_en": "Ask and respond about prices, sizes, and quantities in shops.",
+        "objective_id": "Menanyakan dan merespons harga, ukuran, dan jumlah di toko.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "this/that/these/those",
+          "how much/how many"
+        ],
+        "vocab_list": [
+          "shirt",
+          "pants",
+          "shoes",
+          "size",
+          "cheap",
+          "expensive",
+          "price",
+          "discount",
+          "cash",
+          "card",
+          "try on",
+          "color",
+          "buy",
+          "sell",
+          "receipt"
+        ],
+        "conversation_scenario": "Buying clothes in a store.",
+        "practice_steps": [
+          "Explain shopping phrases and demonstratives.",
+          "Guided Q&A practice on price and quantity.",
+          "Role-play: customer asks for size and pays.",
+          "Reflection: list 3 things you want to buy and why."
+        ],
+        "mini_assessment": {
+          "type": "dialogue",
+          "instruction": "Complete and perform a shopping dialogue with 8-10 turns.",
+          "success_criteria": [
+            "Correct how much/how many questions",
+            "Uses demonstratives naturally",
+            "Covers greeting, inquiry, and closing"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Which question is correct for price?",
+            "options": [
+              "How many is this shirt?",
+              "How much is this shirt?",
+              "How price this shirt?"
+            ],
+            "correctOptionIndex": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/past-experiences-intro-008",
+    "title": "Past Experiences (Introduction)",
+    "raw_text": "Learners begin talking about past events using simple past regular verbs and time markers. The module focuses on short stories about yesterday and last weekend.",
+    "category": "beginner-past-intro",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-08"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-08",
+        "title_en": "Past Experiences (Introduction)",
+        "title_id": "Pengalaman Masa Lalu (Pengantar)",
+        "objective_en": "Share short past experiences with simple past regular verbs.",
+        "objective_id": "Menceritakan pengalaman masa lalu singkat dengan simple past regular verbs.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "simple past regular verbs",
+          "time markers (yesterday, last, ago)"
+        ],
+        "vocab_list": [
+          "visited",
+          "watched",
+          "played",
+          "studied",
+          "walked",
+          "cleaned",
+          "cooked",
+          "called",
+          "yesterday",
+          "last night",
+          "last weekend",
+          "ago",
+          "trip",
+          "movie",
+          "park"
+        ],
+        "conversation_scenario": "Talking about last weekend activities.",
+        "practice_steps": [
+          "Explain regular past verb forms and pronunciation.",
+          "Guided timeline activity with past markers.",
+          "Pair role-play: what did you do yesterday?",
+          "Reflection: write a mini weekend diary."
+        ],
+        "mini_assessment": {
+          "type": "storytelling",
+          "instruction": "Tell a 6-sentence story about your last weekend.",
+          "success_criteria": [
+            "Uses at least 5 regular past verbs",
+            "Uses at least 2 time markers",
+            "Story order is clear"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Which sentence is correct?",
+            "options": [
+              "I visited my friend yesterday.",
+              "I visit my friend yesterday.",
+              "I am visited my friend yesterday."
+            ],
+            "correctOptionIndex": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/health-everyday-problems-009",
+    "title": "Health and Everyday Problems",
+    "raw_text": "This lesson helps learners express basic health problems and ask for help politely. It introduces can/can't and basic should/shouldn't for giving simple advice.",
+    "category": "beginner-health",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-09"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-09",
+        "title_en": "Health and Everyday Problems",
+        "title_id": "Kesehatan dan Masalah Sehari-hari",
+        "objective_en": "Describe simple problems and give basic advice in English.",
+        "objective_id": "Mendeskripsikan masalah sederhana dan memberi saran dasar dalam bahasa Inggris.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "can/can't",
+          "should/shouldn't (basic advice)"
+        ],
+        "vocab_list": [
+          "headache",
+          "fever",
+          "cough",
+          "cold",
+          "tired",
+          "pain",
+          "medicine",
+          "doctor",
+          "clinic",
+          "rest",
+          "drink water",
+          "help",
+          "problem",
+          "urgent",
+          "better"
+        ],
+        "conversation_scenario": "Visiting a clinic and explaining symptoms.",
+        "practice_steps": [
+          "Explain symptom vocabulary and help expressions.",
+          "Guided matching of problem and advice.",
+          "Role-play patient and clinic staff.",
+          "Reflection: write 3 healthy habits you should do."
+        ],
+        "mini_assessment": {
+          "type": "problem-solution",
+          "instruction": "State one health problem and give two advice sentences.",
+          "success_criteria": [
+            "Uses should/shouldn't correctly",
+            "Uses at least 6 target words",
+            "Advice matches the problem"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "Choose the best advice sentence:",
+            "options": [
+              "You should drink more water.",
+              "You should to drink more water.",
+              "You should drinking more water."
+            ],
+            "correctOptionIndex": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "source_url": "https://example.com/beginner-a2/final-communication-project-010",
+    "title": "Final Communication Project",
+    "raw_text": "In this capstone module, learners combine beginner skills into practical communication tasks. They perform integrated conversations: introducing themselves, describing routines, asking directions, shopping, and solving simple daily problems.",
+    "category": "beginner-capstone",
+    "language_code": "en",
+    "locale": "en-US",
+    "metadata": {
+      "focus_level": "beginner",
+      "cefr": "A2",
+      "track": "english-foundation",
+      "module_code": "BEG-10"
+    },
+    "processed_module": {
+      "difficulty": "beginner",
+      "is_published": false,
+      "module_json": {
+        "moduleCode": "BEG-10",
+        "title_en": "Final Communication Project",
+        "title_id": "Proyek Komunikasi Akhir",
+        "objective_en": "Integrate beginner grammar and vocabulary in real-life communication tasks.",
+        "objective_id": "Mengintegrasikan grammar dan kosakata beginner dalam tugas komunikasi nyata.",
+        "estimated_hours": 2.5,
+        "grammar_target": [
+          "review of beginner grammar patterns"
+        ],
+        "vocab_list": [
+          "introduce",
+          "routine",
+          "schedule",
+          "direction",
+          "order",
+          "price",
+          "problem",
+          "advice",
+          "yesterday",
+          "today",
+          "tomorrow",
+          "because",
+          "first",
+          "then",
+          "finally"
+        ],
+        "conversation_scenario": "Integrated role-play: meet, plan, buy, and solve a problem.",
+        "practice_steps": [
+          "Explain capstone flow and scoring criteria.",
+          "Guided rehearsal with cue cards for each scenario.",
+          "Role-play in pairs with rotating roles.",
+          "Reflection: self-evaluate strengths and next focus."
+        ],
+        "mini_assessment": {
+          "type": "capstone",
+          "instruction": "Complete a 4-part role-play and submit a 120-word personal profile text.",
+          "success_criteria": [
+            "Grammar accuracy above beginner threshold",
+            "Uses target vocabulary from previous modules",
+            "Fluent and coherent communication"
+          ]
+        },
+        "quiz": [
+          {
+            "question": "What is the best sequence word for the last step?",
+            "options": [
+              "Finally",
+              "Yesterday",
+              "Maybe"
+            ],
+            "correctOptionIndex": 0
+          }
+        ]
+      }
+    }
+  }
+]

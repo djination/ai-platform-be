@@ -13,6 +13,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .billing_catalog import find_plan, get_catalog_plans, plan_public_dict, valid_paid_plan_codes
 from .entitlements import (
+    configured_plan_daily_limits,
     effective_chat_daily_limit,
     effective_content_daily_limit,
     effective_plan_label,
@@ -35,7 +36,11 @@ class BillingPlansView(APIView):
         effective = None
         if getattr(request.user, "is_authenticated", False):
             effective = effective_plan_label(request.user)
-        items = [plan_public_dict(p, effective_code=effective) for p in plans]
+        items = []
+        for p in plans:
+            row = plan_public_dict(p, effective_code=effective)
+            row["daily_limits"] = configured_plan_daily_limits(row.get("code"))
+            items.append(row)
         return Response(
             {
                 "plans": items,

@@ -4,6 +4,27 @@ from django.utils import timezone
 from .models import LearnerEntitlement
 
 
+def _normalize_limit(raw: int) -> int | None:
+    return None if int(raw) <= 0 else int(raw)
+
+
+def configured_plan_daily_limits(plan_code: str) -> dict[str, int | None]:
+    code = str(plan_code or "").strip().lower()
+    if code == LearnerEntitlement.Plan.GO:
+        chat = getattr(settings, "CHAT_GO_DAILY_MESSAGE_LIMIT", 400)
+        content = getattr(settings, "CONTENT_GO_DAILY_LIMIT", 15)
+    elif code == LearnerEntitlement.Plan.PLUS:
+        chat = getattr(settings, "CHAT_PLUS_DAILY_MESSAGE_LIMIT", 2000)
+        content = getattr(settings, "CONTENT_PLUS_DAILY_LIMIT", 50)
+    elif code == LearnerEntitlement.Plan.PRO:
+        chat = getattr(settings, "CHAT_PRO_DAILY_MESSAGE_LIMIT", 0)
+        content = getattr(settings, "CONTENT_PRO_DAILY_LIMIT", 0)
+    else:
+        chat = getattr(settings, "CHAT_DAILY_MESSAGE_LIMIT", 200)
+        content = getattr(settings, "CONTENT_DAILY_LIMIT", 5)
+    return {"chat": _normalize_limit(chat), "content": _normalize_limit(content)}
+
+
 def get_entitlement(user) -> LearnerEntitlement:
     ent, _ = LearnerEntitlement.objects.get_or_create(user=user)
     return ent

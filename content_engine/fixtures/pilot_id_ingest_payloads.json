@@ -1,0 +1,122 @@
+[
+  {
+    "source_url": "https://example.com/pilot-id/grammar-present-001",
+    "title": "Present continuous - pola dan penggunaan",
+    "raw_text": "Present continuous menyatakan aktivitas yang sedang berlangsung sekarang atau di sekitar waktu sekarang. Pakai am/is/are + verb-ing. Contoh: Saya sedang belajar bahasa Inggris. They are watching a film tonight (jadwal dekat). Hindari present continuous untuk kebiasaan; untuk itu gunakan present simple.",
+    "category": "grammar",
+    "language_code": "id",
+    "locale": "id-ID",
+    "metadata": { "pilot": true, "stream": "G2" },
+    "processed_module": {
+      "module_json": {
+        "title": "Present continuous - pola dan penggunaan",
+        "lessonContent": "Present continuous menyatakan aktivitas yang sedang berlangsung sekarang atau di sekitar waktu sekarang. Pakai am/is/are + verb-ing. Contoh: Saya sedang belajar bahasa Inggris. They are watching a film tonight (jadwal dekat). Hindari present continuous untuk kebiasaan; untuk itu gunakan present simple.",
+        "quiz": [
+          {
+            "question": "Pilih kalimat yang paling tepat untuk aktivitas yang sedang terjadi sekarang:",
+            "options": ["I read a book every evening.", "I am reading a book right now.", "I will read a book tomorrow."],
+            "correctOptionIndex": 1
+          }
+        ]
+      },
+      "difficulty": "beginner",
+      "is_published": false
+    }
+  },
+  {
+    "source_url": "https://example.com/pilot-id/vocab-daily-002",
+    "title": "Kosakata aktivitas harian",
+    "raw_text": "Latihan kosakata: bangun tidur (wake up), mandi (take a shower), sarapan (have breakfast), berangkat kerja (go to work), istirahat (take a break). Gabungkan kata kerja dengan objek sederhana: have breakfast, start work, finish homework.",
+    "category": "vocabulary",
+    "language_code": "id",
+    "locale": "id-ID",
+    "metadata": { "pilot": true, "stream": "G2" },
+    "processed_module": {
+      "module_json": {
+        "title": "Kosakata aktivitas harian",
+        "lessonContent": "Latihan kosakata: bangun tidur (wake up), mandi (take a shower), sarapan (have breakfast), berangkat kerja (go to work), istirahat (take a break). Gabungkan kata kerja dengan objek sederhana: have breakfast, start work, finish homework.",
+        "quiz": [
+          {
+            "question": "Terjemahan yang paling pas untuk “take a break” adalah:",
+            "options": ["menyelesaikan tugas", "istirahat sejenak", "bangun pagi"],
+            "correctOptionIndex": 1
+          }
+        ]
+      },
+      "difficulty": "beginner",
+      "is_published": false
+    }
+  },
+  {
+    "source_url": "https://example.com/pilot-id/grammar-comparison-003",
+    "title": "Perbandingan adjektiva (comparatives)",
+    "raw_text": "Untuk kata pendek, tambahkan -er: tall → taller. Untuk kata panjang, gunakan more: more comfortable. Kalimat perbandingan dua hal memakai than: This exercise is harder than the last one. Irregular: good → better, bad → worse.",
+    "category": "grammar",
+    "language_code": "id",
+    "locale": "id-ID",
+    "metadata": { "pilot": true, "stream": "G2" },
+    "processed_module": {
+      "module_json": {
+        "title": "Perbandingan adjektiva (comparatives)",
+        "lessonContent": "Untuk kata pendek, tambahkan -er: tall → taller. Untuk kata panjang, gunakan more: more comfortable. Kalimat perbandingan dua hal memakai than: This exercise is harder than the last one. Irregular: good → better, bad → worse.",
+        "quiz": [
+          {
+            "question": "Bentuk comparative yang benar untuk “comfortable”:",
+            "options": ["comfortabler", "more comfortable", "most comfortable"],
+            "correctOptionIndex": 1
+          }
+        ]
+      },
+      "difficulty": "intermediate",
+      "is_published": false
+    }
+  },
+  {
+    "source_url": "https://example.com/pilot-id/reading-skimming-004",
+    "title": "Membaca cepat - ide utama",
+    "raw_text": "Teknik skimming: baca judul, subjudul, kalimat pertama tiap paragraf, dan kalimat terakhir. Tujuannya menemukan ide utama tanpa memahami setiap kata. Cocok untuk artikel panjang dan latihan ujian reading.",
+    "category": "reading",
+    "language_code": "id",
+    "locale": "id-ID",
+    "metadata": { "pilot": true, "stream": "G2" },
+    "processed_module": {
+      "module_json": {
+        "title": "Membaca cepat - ide utama",
+        "lessonContent": "Teknik skimming: baca judul, subjudul, kalimat pertama tiap paragraf, dan kalimat terakhir. Tujuannya menemukan ide utama tanpa memahami setiap kata. Cocok untuk artikel panjang dan latihan ujian reading.",
+        "quiz": [
+          {
+            "question": "Langkah skimming yang umum dilakukan:",
+            "options": ["Membaca tiap kata dari awal sampai akhir", "Memfokuskan judul dan kalimat pembuka paragraf", "Menghafal kosakata baru dulu"],
+            "correctOptionIndex": 1
+          }
+        ]
+      },
+      "difficulty": "intermediate",
+      "is_published": false
+    }
+  },
+  {
+    "source_url": "https://example.com/pilot-id/writing-email-005",
+    "title": "Email formal singkat",
+    "raw_text": "Struktur ringkas: salutation (Dear Mr/Ms …), kalimat pembuka tujuan, isi dalam 2–3 kalimat, penutup (Thank you / Best regards), nama. Gunakan kalimat sopan: I would like to …, Could you please … Hindari singkatan informal seperti btw atau asap.",
+    "category": "writing",
+    "language_code": "id",
+    "locale": "id-ID",
+    "metadata": { "pilot": true, "stream": "G2" },
+    "processed_module": {
+      "module_json": {
+        "title": "Email formal singkat",
+        "lessonContent": "Struktur ringkas: salutation (Dear Mr/Ms …), kalimat pembuka tujuan, isi dalam 2–3 kalimat, penutup (Thank you / Best regards), nama. Gunakan kalimat sopan: I would like to …, Could you please … Hindari singkatan informal seperti btw atau asap.",
+        "quiz": [
+          {
+            "question": "Penutup yang lebih cocok untuk email formal ke atasan:",
+            "options": ["Cheers,", "Best regards,", "See ya,"],
+            "correctOptionIndex": 1
+          }
+        ]
+      },
+      "difficulty": "advanced",
+      "is_published": false
+    }
+  }
+]

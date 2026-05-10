@@ -11,6 +11,9 @@ class ProcessedModuleSerializer(serializers.ModelSerializer):
 
 class RawContentIngestSerializer(serializers.ModelSerializer):
     processed_module = ProcessedModuleSerializer(required=False)
+    language_code = serializers.CharField(required=False, allow_blank=False, default="en")
+    locale = serializers.CharField(required=False, allow_blank=True, default="")
+    metadata = serializers.JSONField(required=False, default=dict)
 
     class Meta:
         model = RawContent
@@ -19,9 +22,22 @@ class RawContentIngestSerializer(serializers.ModelSerializer):
             "title",
             "raw_text",
             "category",
-            "status",
+            "language_code",
+            "locale",
+            "metadata",
             "processed_module",
         )
+
+    def validate_language_code(self, value):
+        normalized = value.strip().lower()
+        if len(normalized) not in (2, 5):
+            raise serializers.ValidationError("language_code must be ISO code (e.g. en or en-us).")
+        return normalized
+
+    def validate_locale(self, value):
+        if not value or not str(value).strip():
+            return ""
+        return str(value).strip()[:32]
 
     def create(self, validated_data):
         processed_module_data = validated_data.pop("processed_module", None)

@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Example negotiation article title",
+    "source_url": "https://example.com/articles/negotiation-sample-001",
+    "raw_text": "Full plain text of the article body would go here. Replace with real extraction output from OpenClaw.",
+    "category": "lp4-negotiation-english"
+  }
+]

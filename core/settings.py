@@ -123,6 +123,63 @@ STATIC_URL = 'static/'
 # Prefer DB-backed `IngestAPIKey` entries for key rotation.
 OPENCLAW_API_KEY = os.getenv('OPENCLAW_API_KEY', 'change-me-in-production')
 
+# Phase 2 learner chat (OpenRouter-compatible HTTP API)
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
+OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'openai/gpt-4o-mini')
+OPENROUTER_BASE_URL = os.getenv(
+    'OPENROUTER_BASE_URL',
+    'https://openrouter.ai/api/v1/chat/completions',
+)
+CHAT_DAILY_MESSAGE_LIMIT = int(os.getenv('CHAT_DAILY_MESSAGE_LIMIT', '200'))
+# Kuota chat harian per tier berbayar (0 = tanpa batas harian untuk tier itu). Throttle HTTP tetap berlaku.
+CHAT_GO_DAILY_MESSAGE_LIMIT = int(os.getenv('CHAT_GO_DAILY_MESSAGE_LIMIT', '400'))
+CHAT_PLUS_DAILY_MESSAGE_LIMIT = int(os.getenv('CHAT_PLUS_DAILY_MESSAGE_LIMIT', '2000'))
+CHAT_PRO_DAILY_MESSAGE_LIMIT = int(os.getenv('CHAT_PRO_DAILY_MESSAGE_LIMIT', '0'))
+# Kuota akses konten/modul harian per tier (0 = tanpa batas harian untuk tier itu).
+CONTENT_DAILY_LIMIT = int(os.getenv('CONTENT_DAILY_LIMIT', '5'))
+CONTENT_GO_DAILY_LIMIT = int(os.getenv('CONTENT_GO_DAILY_LIMIT', '15'))
+CONTENT_PLUS_DAILY_LIMIT = int(os.getenv('CONTENT_PLUS_DAILY_LIMIT', '50'))
+CONTENT_PRO_DAILY_LIMIT = int(os.getenv('CONTENT_PRO_DAILY_LIMIT', '0'))
+
+# Simulasi pembayaran (demo). Matikan di production (false).
+BILLING_DEMO_PAYMENT_ENABLED = os.getenv('BILLING_DEMO_PAYMENT_ENABLED', 'false').lower() in (
+    '1',
+    'true',
+    'yes',
+)
+BILLING_DEMO_SUBSCRIPTION_DAYS = int(os.getenv('BILLING_DEMO_SUBSCRIPTION_DAYS', '30'))
+
+CHAT_REPLY_CACHE_ENABLED = os.getenv('CHAT_REPLY_CACHE_ENABLED', 'true').lower() in (
+    '1',
+    'true',
+    'yes',
+)
+
+# Admin content discovery (search + fetch + ingest).
+SERPAPI_API_KEY = os.getenv('SERPAPI_API_KEY', '')
+# Google Custom Search JSON API: https://developers.google.com/custom-search/v1/overview
+# GOOGLE_API_KEY is accepted as fallback when GOOGLE_CSE_API_KEY is empty.
+GOOGLE_CSE_API_KEY = (
+    os.getenv('GOOGLE_CSE_API_KEY', '') or os.getenv('GOOGLE_API_KEY', '')
+).strip()
+GOOGLE_CSE_CX = os.getenv('GOOGLE_CSE_CX', '').strip()
+DISCOVERY_SEARCH_BACKEND = os.getenv('DISCOVERY_SEARCH_BACKEND', 'duckduckgo').strip().lower()
+DISCOVERY_MAX_RESULTS_CAP = int(os.getenv('DISCOVERY_MAX_RESULTS_CAP', '15'))
+DISCOVERY_MIN_EXTRACTED_CHARS = int(os.getenv('DISCOVERY_MIN_EXTRACTED_CHARS', '300'))
+DISCOVERY_HTTP_TIMEOUT_SECONDS = int(os.getenv('DISCOVERY_HTTP_TIMEOUT_SECONDS', '25'))
+DISCOVERY_HTTP_USER_AGENT = os.getenv(
+    'DISCOVERY_HTTP_USER_AGENT',
+    'Mozilla/5.0 (compatible; EduPlatformContentBot/1.0)',
+)
+DISCOVERY_FAILED_URL_CACHE_SECONDS = int(os.getenv('DISCOVERY_FAILED_URL_CACHE_SECONDS', '604800'))
+
+# Google reCAPTCHA (v2 checkbox or v3 — siteverify supports both). When RECAPTCHA_SECRET_KEY is set,
+# POST /api/auth/register/ requires a valid recaptcha_token.
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '').strip()
+RECAPTCHA_MIN_SCORE = float(os.getenv('RECAPTCHA_MIN_SCORE', '0.5'))
+# If true (and RECAPTCHA_SECRET_KEY set), POST /api/auth/token/ requires recaptcha_token (v3 recommended).
+RECAPTCHA_VERIFY_LOGIN = os.getenv('RECAPTCHA_VERIFY_LOGIN', 'false').lower() in ('1', 'true', 'yes')
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -132,6 +189,11 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'openclaw_ingest': os.getenv('OPENCLAW_INGEST_THROTTLE_RATE', '30/minute'),
+        'chat': os.getenv('CHAT_THROTTLE_RATE', '60/hour'),
+        'discover_ingest': os.getenv('DISCOVERY_INGEST_THROTTLE_RATE', '12/hour'),
+        'learner_register': os.getenv('LEARNER_REGISTER_THROTTLE_RATE', '20/hour'),
+        'learner_login': os.getenv('LEARNER_LOGIN_THROTTLE_RATE', '30/hour'),
+        'billing_demo': os.getenv('BILLING_DEMO_THROTTLE_RATE', '30/hour'),
     },
 }
 

@@ -101,6 +101,7 @@ class LearnerEntitlementAdmin(admin.ModelAdmin):
         "payment_status",
         "pending_plan_code",
         "pro_access_until",
+        "cancel_at_period_end",
         "updated_at",
     )
     list_filter = ("plan", "payment_status")

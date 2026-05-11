@@ -25,6 +25,12 @@ class Command(BaseCommand):
             action="store_true",
             help="Do not enqueue enrichment jobs after each ingest",
         )
+        parser.add_argument(
+            "--suggested-difficulty",
+            default="beginner",
+            choices=("beginner", "intermediate", "advanced"),
+            help="Stored in RawContent.metadata for filtering and draft defaults (same as admin UI).",
+        )
 
     def handle(self, *args, **options):
         query = options["query"].strip()
@@ -34,6 +40,7 @@ class Command(BaseCommand):
         locale = options["locale"].strip()
         backend = options["search_backend"]
         skip_enrichment = options["skip_enrichment"]
+        suggested_difficulty = options["suggested_difficulty"]
 
         report = run_discover_and_ingest(
             query=query,
@@ -41,6 +48,7 @@ class Command(BaseCommand):
             category=category,
             language_code=language_code,
             locale=locale,
+            suggested_difficulty=suggested_difficulty,
             search_backend=backend,
             queue_jobs=not skip_enrichment,
         )

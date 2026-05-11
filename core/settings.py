@@ -194,6 +194,7 @@ REST_FRAMEWORK = {
         'learner_register': os.getenv('LEARNER_REGISTER_THROTTLE_RATE', '20/hour'),
         'learner_login': os.getenv('LEARNER_LOGIN_THROTTLE_RATE', '30/hour'),
         'billing_demo': os.getenv('BILLING_DEMO_THROTTLE_RATE', '30/hour'),
+        'billing_manage': os.getenv('BILLING_MANAGE_THROTTLE_RATE', '30/hour'),
     },
 }
 

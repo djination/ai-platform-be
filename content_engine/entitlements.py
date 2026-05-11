@@ -25,8 +25,41 @@ def configured_plan_daily_limits(plan_code: str) -> dict[str, int | None]:
     return {"chat": _normalize_limit(chat), "content": _normalize_limit(content)}
 
 
+def maybe_finalize_expired_paid_period(ent: LearnerEntitlement) -> bool:
+    """
+    Jika langganan berbayar sudah lewat pro_access_until, samakan baris DB ke Free.
+    Berlaku untuk habis masa natural maupun setelah user memilih cancel di akhir periode.
+    Return True jika baris diperbarui.
+    """
+    now = timezone.now()
+    if ent.payment_status != LearnerEntitlement.PaymentStatus.ACTIVE:
+        return False
+    if ent.plan == LearnerEntitlement.Plan.FREE:
+        return False
+    until = ent.pro_access_until
+    if until is None or until > now:
+        return False
+    ent.plan = LearnerEntitlement.Plan.FREE
+    ent.payment_status = LearnerEntitlement.PaymentStatus.NONE
+    ent.pro_access_until = None
+    ent.pending_plan_code = ""
+    ent.cancel_at_period_end = False
+    ent.save(
+        update_fields=[
+            "plan",
+            "payment_status",
+            "pro_access_until",
+            "pending_plan_code",
+            "cancel_at_period_end",
+            "updated_at",
+        ]
+    )
+    return True
+
+
 def get_entitlement(user) -> LearnerEntitlement:
     ent, _ = LearnerEntitlement.objects.get_or_create(user=user)
+    maybe_finalize_expired_paid_period(ent)
     return ent
 
 

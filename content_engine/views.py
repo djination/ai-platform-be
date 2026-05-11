@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, OuterRef, Q, Subquery
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -234,9 +234,10 @@ def _learner_module_payload(processed_module: ProcessedModule) -> dict:
     }
 
 
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def module_view(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
     if not _check_and_increment_content_daily(request.user):
         return _content_limit_response(request.user)
 
@@ -261,9 +262,10 @@ def module_view(request):
     return JsonResponse(_learner_module_payload(latest_published_module), status=200)
 
 
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def published_module_detail_view(request, module_id):
-    if request.method != "GET":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
     if not _check_and_increment_content_daily(request.user):
         return _content_limit_response(request.user)
 
@@ -281,9 +283,10 @@ def published_module_detail_view(request, module_id):
     return JsonResponse(_learner_module_payload(processed_module), status=200)
 
 
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def published_modules_view(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "Method not allowed"}, status=405)
     if not _check_and_increment_content_daily(request.user):
         return _content_limit_response(request.user)
 
@@ -320,6 +323,11 @@ def admin_raw_content_list(request):
     category_filter = (request.GET.get("category") or request.GET.get("learning_path") or "").strip()
     if category_filter:
         raw_contents = raw_contents.filter(category=category_filter)
+    sd = (
+        request.GET.get("suggested_difficulty") or request.GET.get("difficulty") or ""
+    ).strip().lower()
+    if sd in ("beginner", "intermediate", "advanced"):
+        raw_contents = raw_contents.filter(metadata__suggested_difficulty=sd)
     raw_contents = raw_contents.order_by("-created_at")
     data = [
         {
@@ -331,6 +339,7 @@ def admin_raw_content_list(request):
             "locale": item.locale or "",
             "created_at": item.created_at.isoformat(),
             "processed_module_count": item.processed_module_count,
+            "suggested_difficulty": (item.metadata or {}).get("suggested_difficulty") or "",
         }
         for item in raw_contents
     ]
@@ -357,6 +366,9 @@ def admin_discover_ingest(request):
 
     language_code = str(body.get("language_code") or "en").strip()
     locale = str(body.get("locale") or "").strip()
+    suggested_difficulty = str(
+        body.get("suggested_difficulty") or body.get("difficulty") or "beginner"
+    ).strip()
     sb = str(body.get("search_backend") or "").strip().lower()
     search_backend = sb if sb in ("duckduckgo", "serpapi", "google", "google_cse") else None
     skip_enrichment = bool(body.get("skip_enrichment"))
@@ -367,6 +379,7 @@ def admin_discover_ingest(request):
         category=category,
         language_code=language_code,
         locale=locale,
+        suggested_difficulty=suggested_difficulty,
         search_backend=search_backend,
         queue_jobs=not skip_enrichment,
     )
@@ -611,6 +624,160 @@ def admin_processed_module_detail(request, module_id):
     )
 
 
+_CHAT_HISTORY_MAX_MESSAGES = 200
+_CHAT_SESSIONS_LIST_MAX = 50
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def chat_sessions_list(request):
+    """List chat sessions for the current user (newest first), for sidebar history UI."""
+    try:
+        raw_limit = int(request.query_params.get("limit", _CHAT_SESSIONS_LIST_MAX))
+        limit = max(1, min(raw_limit, 100))
+    except (TypeError, ValueError):
+        limit = _CHAT_SESSIONS_LIST_MAX
+
+    status = str(request.query_params.get("status", "active")).strip().lower()
+    if status not in ("active", "archived", "all"):
+        status = "active"
+
+    first_user_text = (
+        ChatMessage.objects.filter(
+            session_id=OuterRef("pk"),
+            role=ChatMessage.Role.USER,
+        )
+        .order_by("id")
+        .values("content")[:1]
+    )
+    base = ChatSession.objects.filter(user=request.user, deleted_at__isnull=True)
+    if status == "active":
+        base = base.filter(is_archived=False)
+    elif status == "archived":
+        base = base.filter(is_archived=True)
+    qs = (
+        base.annotate(preview=Subquery(first_user_text), message_count=Count("messages"))
+        .order_by("-updated_at")[:limit]
+    )
+    items = []
+    for s in qs:
+        pv = (s.preview or "").strip().replace("\n", " ")
+        if len(pv) > 160:
+            pv = f"{pv[:157]}..."
+        items.append(
+            {
+                "session_key": s.session_key,
+                "title": (s.title or "").strip(),
+                "created_at": s.created_at.isoformat(),
+                "updated_at": s.updated_at.isoformat(),
+                "preview": pv,
+                "message_count": s.message_count,
+                "is_archived": bool(s.is_archived),
+            }
+        )
+    return Response({"items": items, "status": status})
+
+
+@api_view(["PATCH", "DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def chat_session_detail(request, session_key: str):
+    """Rename (PATCH title) or soft-delete (DELETE) one chat session."""
+    sk = str(session_key or "").strip()
+    if not sk or len(sk) > 64:
+        return Response({"error": "Invalid session_key"}, status=status.HTTP_400_BAD_REQUEST)
+
+    session = ChatSession.objects.filter(user=request.user, session_key=sk).first()
+    if not session:
+        return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        if not session.deleted_at:
+            session.deleted_at = timezone.now()
+            session.save(update_fields=["deleted_at", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if session.deleted_at:
+        return Response(
+            {"error": "Percakapan sudah dihapus", "code": "chat_session_deleted"},
+            status=status.HTTP_410_GONE,
+        )
+
+    try:
+        body = request.data
+    except ParseError:
+        return Response({"error": "Invalid JSON payload"}, status=status.HTTP_400_BAD_REQUEST)
+
+    has_title = "title" in body
+    has_archived = "is_archived" in body
+    if not has_title and not has_archived:
+        return Response(
+            {"error": "Provide at least one of: title, is_archived"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    update_fields: list[str] = []
+    if has_title:
+        title = str(body.get("title") or "").strip()
+        if len(title) > 200:
+            return Response(
+                {"error": "Title too long (max 200 characters)"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        session.title = title
+        update_fields.append("title")
+    if has_archived:
+        session.is_archived = bool(body.get("is_archived"))
+        update_fields.append("is_archived")
+    update_fields.append("updated_at")
+    session.save(update_fields=update_fields)
+    return Response(
+        {
+            "session_key": session.session_key,
+            "title": (session.title or "").strip(),
+            "is_archived": bool(session.is_archived),
+            "updated_at": session.updated_at.isoformat(),
+        }
+    )
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def chat_history(request):
+    """Return persisted user/assistant turns for this learner and session_key (for refresh-safe UI)."""
+    session_key = str(request.query_params.get("session_key") or "").strip()
+    if not session_key:
+        return Response(
+            {"error": "Query parameter session_key is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if len(session_key) > 64:
+        return Response({"error": "session_key too long"}, status=status.HTTP_400_BAD_REQUEST)
+
+    session = ChatSession.objects.filter(user=request.user, session_key=session_key).first()
+    if not session:
+        return Response({"session_key": session_key, "messages": []})
+    if session.deleted_at:
+        return Response(
+            {
+                "error": "Percakapan sudah dihapus",
+                "code": "chat_session_deleted",
+                "session_key": session_key,
+                "messages": [],
+            },
+            status=status.HTTP_410_GONE,
+        )
+
+    qs = (
+        session.messages.filter(role__in=(ChatMessage.Role.USER, ChatMessage.Role.ASSISTANT))
+        .order_by("id")[:_CHAT_HISTORY_MAX_MESSAGES]
+    )
+    items = [{"role": m.role, "content": m.content} for m in qs]
+    return Response({"session_key": session_key, "messages": items})
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -672,6 +839,19 @@ def chat_send(request):
             status=status.HTTP_200_OK,
         )
 
+    if ChatSession.objects.filter(
+        user=request.user,
+        session_key=session_key,
+        deleted_at__isnull=False,
+    ).exists():
+        return Response(
+            {
+                "error": "Percakapan ini sudah dihapus. Mulai chat baru.",
+                "code": "chat_session_deleted",
+            },
+            status=status.HTTP_410_GONE,
+        )
+
     if not _check_and_increment_chat_daily(request.user):
         payload = {
             "error": "Daily chat limit reached. Try again tomorrow.",
@@ -685,6 +865,14 @@ def chat_send(request):
         user=request.user,
         session_key=session_key,
     )
+    if session.deleted_at:
+        return Response(
+            {
+                "error": "Percakapan ini sudah dihapus. Mulai chat baru.",
+                "code": "chat_session_deleted",
+            },
+            status=status.HTTP_410_GONE,
+        )
 
     history_qs = (
         session.messages.filter(

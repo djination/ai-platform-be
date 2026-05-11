@@ -209,6 +209,13 @@ def fetch_article_text(url: str) -> tuple[str | None, str | None, str | None]:
         return None, None, f"http_error:{str(exc)[:180]}"
 
 
+def _normalize_suggested_difficulty(raw: str | None) -> str:
+    v = (raw or "beginner").strip().lower()
+    if v in ("beginner", "intermediate", "advanced"):
+        return v
+    return "beginner"
+
+
 def run_discover_and_ingest(
     *,
     query: str,
@@ -216,6 +223,7 @@ def run_discover_and_ingest(
     category: str,
     language_code: str = "en",
     locale: str = "",
+    suggested_difficulty: str | None = None,
     search_backend: str | None = None,
     queue_jobs: bool = True,
     sleep_seconds: float = 1.0,
@@ -235,6 +243,7 @@ def run_discover_and_ingest(
 
     cap = int(getattr(settings, "DISCOVERY_MAX_RESULTS_CAP", 15))
     max_results = max(1, min(int(max_results), cap))
+    diff = _normalize_suggested_difficulty(suggested_difficulty)
 
     backend = (search_backend or getattr(settings, "DISCOVERY_SEARCH_BACKEND", "duckduckgo")).strip().lower()
     if backend == "serpapi" and not (getattr(settings, "SERPAPI_API_KEY", "") or "").strip():
@@ -306,7 +315,11 @@ def run_discover_and_ingest(
             "category": category[:100],
             "language_code": (language_code or "en").strip().lower(),
             "locale": (locale or "")[:32],
-            "metadata": {"discovery": True, "discovery_query": q[:500]},
+            "metadata": {
+                "discovery": True,
+                "discovery_query": q[:500],
+                "suggested_difficulty": diff,
+            },
         }
         serializer = RawContentIngestSerializer(data=payload)
         if not serializer.is_valid():
@@ -332,6 +345,7 @@ def run_discover_and_ingest(
         "query": q,
         "search_backend": backend,
         "requested_max": max_results,
+        "suggested_difficulty": diff,
         "candidates_found": len(candidates),
         "created": created,
         "skipped": skipped,

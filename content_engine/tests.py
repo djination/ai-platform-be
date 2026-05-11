@@ -385,6 +385,23 @@ class AdminRawContentPromoteTests(APITestCase):
         self.assertEqual(len(rows), 1)
         self.assertIn("processed_module_count", rows[0])
         self.assertEqual(rows[0]["processed_module_count"], 0)
+        self.assertIn("suggested_difficulty", rows[0])
+
+    def test_list_filters_by_suggested_difficulty(self):
+        RawContent.objects.create(
+            title="Adv only",
+            source_url="https://example.com/adv-only",
+            raw_text="body",
+            category="grammar",
+            language_code="en",
+            metadata={"suggested_difficulty": "advanced"},
+        )
+        self.client.force_authenticate(user=self.admin_user)
+        adv = self.client.get(f"{self.list_url}?suggested_difficulty=advanced")
+        self.assertEqual(len(adv.json()), 1)
+        self.assertEqual(adv.json()[0]["title"], "Adv only")
+        beg = self.client.get(f"{self.list_url}?suggested_difficulty=beginner")
+        self.assertEqual(len(beg.json()), 0)
 
     def test_list_filters_by_language_code(self):
         RawContent.objects.create(
@@ -841,6 +858,117 @@ class ChatEndpointTests(APITestCase):
         self.assertEqual(ChatSession.objects.count(), 1)
         self.assertEqual(ChatMessage.objects.count(), 4)
 
+    def test_chat_history_requires_auth(self):
+        history_url = "/api/content-engine/chat/history/?session_key=any"
+        response = self.client.get(history_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_chat_history_requires_session_key(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/content-engine/chat/history/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_chat_history_returns_messages(self):
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "Hello tutor"}, format="json")
+        session_key = post.json()["session_key"]
+        get = self.client.get(f"/api/content-engine/chat/history/?session_key={session_key}")
+        self.assertEqual(get.status_code, status.HTTP_200_OK)
+        data = get.json()
+        self.assertEqual(data["session_key"], session_key)
+        self.assertEqual(len(data["messages"]), 2)
+        self.assertEqual(data["messages"][0]["role"], "user")
+        self.assertEqual(data["messages"][0]["content"], "Hello tutor")
+        self.assertEqual(data["messages"][1]["role"], "assistant")
+
+    def test_chat_history_other_user_empty(self):
+        user_model = get_user_model()
+        other = user_model.objects.create_user(username="chat-other", password="secret123")
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "Secret"}, format="json")
+        session_key = post.json()["session_key"]
+        self.client.force_authenticate(user=other)
+        get = self.client.get(f"/api/content-engine/chat/history/?session_key={session_key}")
+        self.assertEqual(get.status_code, status.HTTP_200_OK)
+        self.assertEqual(get.json()["messages"], [])
+
+    def test_chat_sessions_list_requires_auth(self):
+        response = self.client.get("/api/content-engine/chat/sessions/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_chat_sessions_list_returns_sessions(self):
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "First line of a new chat"}, format="json")
+        self.assertEqual(post.status_code, status.HTTP_200_OK)
+        sk = post.json()["session_key"]
+        lst = self.client.get("/api/content-engine/chat/sessions/")
+        self.assertEqual(lst.status_code, status.HTTP_200_OK)
+        data = lst.json()
+        self.assertEqual(len(data["items"]), 1)
+        row = data["items"][0]
+        self.assertEqual(row["session_key"], sk)
+        self.assertIn("First line", row["preview"])
+        self.assertGreaterEqual(row["message_count"], 2)
+        self.assertIn("title", row)
+        self.assertEqual(row["title"], "")
+        self.assertIn("is_archived", row)
+        self.assertFalse(row["is_archived"])
+        self.assertEqual(data.get("status"), "active")
+
+    @patch("content_engine.views.call_llm")
+    def test_patch_chat_session_title(self, mock_llm):
+        mock_llm.return_value = ("Hi back", {})
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "Hi"}, format="json")
+        sk = post.json()["session_key"]
+        url = f"/api/content-engine/chat/sessions/{sk}/"
+        r = self.client.patch(url, {"title": "  Judul kustom  "}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.json()["title"], "Judul kustom")
+        self.assertIn("is_archived", r.json())
+        self.assertFalse(r.json()["is_archived"])
+        sess = ChatSession.objects.get(user=self.user, session_key=sk)
+        self.assertEqual(sess.title, "Judul kustom")
+
+    @patch("content_engine.views.call_llm")
+    def test_chat_sessions_list_status_active_archived(self, mock_llm):
+        mock_llm.return_value = ("R", {})
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "Line one"}, format="json")
+        sk = post.json()["session_key"]
+        self.client.patch(f"/api/content-engine/chat/sessions/{sk}/", {"is_archived": True}, format="json")
+        active = self.client.get("/api/content-engine/chat/sessions/?status=active")
+        self.assertEqual(active.json().get("status"), "active")
+        self.assertEqual(len(active.json()["items"]), 0)
+        archived = self.client.get("/api/content-engine/chat/sessions/?status=archived")
+        self.assertEqual(archived.json().get("status"), "archived")
+        self.assertEqual(len(archived.json()["items"]), 1)
+        self.assertTrue(archived.json()["items"][0]["is_archived"])
+
+    @patch("content_engine.views.call_llm")
+    def test_delete_chat_session_excludes_from_list(self, mock_llm):
+        mock_llm.return_value = ("R", {})
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "To delete"}, format="json")
+        sk = post.json()["session_key"]
+        url = f"/api/content-engine/chat/sessions/{sk}/"
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_204_NO_CONTENT)
+        lst = self.client.get("/api/content-engine/chat/sessions/")
+        self.assertEqual(len(lst.json()["items"]), 0)
+        hist = self.client.get(f"/api/content-engine/chat/history/?session_key={sk}")
+        self.assertEqual(hist.status_code, status.HTTP_410_GONE)
+
+    @patch("content_engine.views.call_llm")
+    def test_post_to_deleted_session_returns_410(self, mock_llm):
+        mock_llm.return_value = ("OK", {})
+        self.client.force_authenticate(user=self.user)
+        post = self.client.post(self.url, {"message": "Once"}, format="json")
+        sk = post.json()["session_key"]
+        self.client.delete(f"/api/content-engine/chat/sessions/{sk}/")
+        again = self.client.post(self.url, {"message": "Again", "session_key": sk}, format="json")
+        self.assertEqual(again.status_code, status.HTTP_410_GONE)
+
     @patch("content_engine.views.call_llm")
     def test_reuses_cached_reply_for_same_first_turn_message(self, mock_llm):
         mock_llm.return_value = ("Assistant reply unique xyz123", {"provider": "openrouter", "tokens": 10})
@@ -984,6 +1112,9 @@ class MeEntitlementAPITests(APITestCase):
         self.assertIsNone(data["pro_access_until"])
         self.assertEqual(data["payment_status"], "none")
         self.assertIn("demo_payment_enabled", data)
+        self.assertFalse(data.get("can_manage_subscription"))
+        self.assertEqual(data.get("downgrade_plan_options"), [])
+        self.assertFalse(data.get("cancel_at_period_end"))
 
 
 class MeLimitsAPITests(APITestCase):
@@ -1131,6 +1262,171 @@ class RequestUpgradeAPITests(APITestCase):
         self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class SubscriptionManageAPITests(APITestCase):
+    url = "/api/content-engine/billing/subscription/manage/"
+
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(username="sub-manage", password="secret123")
+
+    def test_requires_authentication(self):
+        r = self.client.post(self.url, {"intent": "cancel"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_cancel_rejects_without_active_paid(self):
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "cancel"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cancel_default_schedules_end_of_period(self):
+        until = timezone.now() + timedelta(days=3)
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=until,
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "cancel"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertEqual(ent.plan, LearnerEntitlement.Plan.GO)
+        self.assertEqual(ent.payment_status, LearnerEntitlement.PaymentStatus.ACTIVE)
+        self.assertEqual(ent.pro_access_until, until)
+        self.assertTrue(ent.cancel_at_period_end)
+
+    def test_cancel_schedule_twice_returns_400(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=1),
+            cancel_at_period_end=True,
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "cancel"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cancel_immediate_stops_access(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=3),
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "cancel", "when": "immediate"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertEqual(ent.plan, LearnerEntitlement.Plan.FREE)
+        self.assertEqual(ent.payment_status, LearnerEntitlement.PaymentStatus.NONE)
+        self.assertIsNone(ent.pro_access_until)
+        self.assertFalse(ent.cancel_at_period_end)
+
+    def test_revoke_scheduled_cancel(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=3),
+            cancel_at_period_end=True,
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "revoke_cancel"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertFalse(ent.cancel_at_period_end)
+
+    def test_me_entitlement_finalizes_expired_period(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.PLUS,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() - timedelta(hours=1),
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.get("/api/content-engine/me/entitlement/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        data = r.json()
+        self.assertEqual(data["plan"], "free")
+        self.assertEqual(data["stored_plan"], "free")
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertEqual(ent.plan, LearnerEntitlement.Plan.FREE)
+        self.assertFalse(ent.cancel_at_period_end)
+
+    def test_downgrade_clears_scheduled_cancel(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.PRO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=5),
+            cancel_at_period_end=True,
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "downgrade", "plan_code": "plus"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertFalse(ent.cancel_at_period_end)
+
+    def test_downgrade_pro_to_plus_keeps_access_until(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.PRO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=5),
+        )
+        until_before = LearnerEntitlement.objects.get(user=self.user).pro_access_until
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "downgrade", "plan_code": "plus"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        ent = LearnerEntitlement.objects.get(user=self.user)
+        self.assertEqual(ent.plan, LearnerEntitlement.Plan.PLUS)
+        self.assertEqual(ent.payment_status, LearnerEntitlement.PaymentStatus.ACTIVE)
+        self.assertEqual(ent.pro_access_until, until_before)
+
+    def test_downgrade_rejects_tier_higher_than_current(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "downgrade", "plan_code": "pro"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_downgrade_free_plan_requires_cancel_intent(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.GO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "downgrade", "plan_code": "free"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_intent(self):
+        self.client.force_authenticate(user=self.user)
+        r = self.client.post(self.url, {"intent": "pause"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_me_entitlement_active_pro_lists_downgrades(self):
+        LearnerEntitlement.objects.create(
+            user=self.user,
+            plan=LearnerEntitlement.Plan.PRO,
+            payment_status=LearnerEntitlement.PaymentStatus.ACTIVE,
+            pro_access_until=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_authenticate(user=self.user)
+        r = self.client.get("/api/content-engine/me/entitlement/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        data = r.json()
+        self.assertTrue(data["can_manage_subscription"])
+        codes = {o["code"] for o in data["downgrade_plan_options"]}
+        self.assertEqual(codes, {"plus", "go"})
+
+
 class ChatReplyCacheUnitTests(SimpleTestCase):
     def test_lookup_hash_none_when_history_not_empty(self):
         h = chat_service.compute_chat_reply_cache_lookup_hash(
@@ -1220,6 +1516,26 @@ class DiscoveryPipelineTests(TestCase):
             RawContent.objects.filter(source_url="https://example.com/disc-test-1").count(),
             1,
         )
+        row = RawContent.objects.get(source_url="https://example.com/disc-test-1")
+        self.assertEqual(row.metadata.get("suggested_difficulty"), "beginner")
+
+    @patch("content_engine.discovery.fetch_article_text")
+    @patch("content_engine.discovery.search_candidate_urls")
+    def test_run_discover_stores_requested_suggested_difficulty(self, mock_search, mock_fetch):
+        mock_search.return_value = [
+            {"url": "https://example.com/disc-level", "snippet_title": "S"},
+        ]
+        mock_fetch.return_value = ("T", "word " * 80, None)
+        report = run_discover_and_ingest(
+            query="english phrases for meetings",
+            max_results=2,
+            category="lp1-test",
+            suggested_difficulty="intermediate",
+            queue_jobs=False,
+        )
+        self.assertNotIn("error", report)
+        row = RawContent.objects.get(source_url="https://example.com/disc-level")
+        self.assertEqual(row.metadata.get("suggested_difficulty"), "intermediate")
 
     @patch("content_engine.discovery.search_candidate_urls")
     def test_run_discover_short_query_skips_search(self, mock_search):

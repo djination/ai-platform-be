@@ -25,6 +25,16 @@ from .models import LearnerEntitlement
 logger = logging.getLogger(__name__)
 
 
+def _downgrade_target_plan_codes(current_plan: str) -> list[str]:
+    """Kode paket berbayar lebih rendah yang boleh sebagai target downgrade."""
+    p = (current_plan or "").strip().lower()
+    if p == LearnerEntitlement.Plan.PRO:
+        return [LearnerEntitlement.Plan.PLUS.value, LearnerEntitlement.Plan.GO.value]
+    if p == LearnerEntitlement.Plan.PLUS:
+        return [LearnerEntitlement.Plan.GO.value]
+    return []
+
+
 class BillingPlansView(APIView):
     """Katalog paket untuk UI (dari Admin: Billing catalog plan). JWT opsional: menandai paket efektif."""
 
@@ -153,12 +163,14 @@ class DemoCompletePaymentView(APIView):
         ent.plan = code
         ent.payment_status = LearnerEntitlement.PaymentStatus.ACTIVE
         ent.pending_plan_code = ""
+        ent.cancel_at_period_end = False
         ent.pro_access_until = timezone.now() + timedelta(days=days)
         ent.save(
             update_fields=[
                 "plan",
                 "payment_status",
                 "pending_plan_code",
+                "cancel_at_period_end",
                 "pro_access_until",
                 "updated_at",
             ]
@@ -180,6 +192,168 @@ class DemoCompletePaymentView(APIView):
         )
 
 
+class SubscriptionManageView(APIView):
+    """
+    Pembatalan langganan (default: berhenti di akhir pro_access_until; opsi when=immediate)
+    atau downgrade ke tier berbayar lebih rendah.
+    Downgrade: pro_access_until tidak diubah; flag cancel di akhir periode dihapus.
+    """
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "billing_manage"
+
+    def post(self, request):
+        intent = str(request.data.get("intent") or "").strip().lower()
+        plan_code = str(request.data.get("plan_code") or "").strip().lower()
+        ent = get_entitlement(request.user)
+
+        if intent == "revoke_cancel":
+            if not ent.cancel_at_period_end:
+                return Response(
+                    {"error": "Tidak ada jadwal berhenti di akhir periode untuk diurungkan."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            ent.cancel_at_period_end = False
+            ent.save(update_fields=["cancel_at_period_end", "updated_at"])
+            logger.info("Scheduled subscription cancel revoked user_id=%s", request.user.pk)
+            return Response(
+                {
+                    "detail": "Jadwal berhenti di akhir periode dibatalkan. Langganan tetap seperti biasa.",
+                    "cancel_at_period_end": False,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        if intent == "cancel":
+            if not subscription_is_active(ent) or ent.plan == LearnerEntitlement.Plan.FREE:
+                return Response(
+                    {"error": "Tidak ada langganan berbayar aktif yang bisa dibatalkan."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            when = str(request.data.get("when") or "period_end").strip().lower()
+            if when == "immediate":
+                ent.plan = LearnerEntitlement.Plan.FREE
+                ent.payment_status = LearnerEntitlement.PaymentStatus.NONE
+                ent.pro_access_until = None
+                ent.pending_plan_code = ""
+                ent.cancel_at_period_end = False
+                ent.save(
+                    update_fields=[
+                        "plan",
+                        "payment_status",
+                        "pro_access_until",
+                        "pending_plan_code",
+                        "cancel_at_period_end",
+                        "updated_at",
+                    ]
+                )
+                logger.info("Subscription cancelled immediately user_id=%s", request.user.pk)
+                return Response(
+                    {
+                        "detail": "Langganan dihentikan segera. Anda kembali ke paket Free.",
+                        "plan": LearnerEntitlement.Plan.FREE.value,
+                        "payment_status": LearnerEntitlement.PaymentStatus.NONE.value,
+                        "cancel_at_period_end": False,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            if when not in ("period_end", "end_of_period", ""):
+                return Response(
+                    {"error": "Nilai when tidak dikenal. Gunakan period_end atau immediate."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if ent.cancel_at_period_end:
+                return Response(
+                    {"error": "Pembatalan di akhir periode sudah dijadwalkan."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            ent.cancel_at_period_end = True
+            ent.pending_plan_code = ""
+            ent.save(update_fields=["cancel_at_period_end", "pending_plan_code", "updated_at"])
+            logger.info("Subscription cancel at period end scheduled user_id=%s", request.user.pk)
+            until_iso = ent.pro_access_until.isoformat() if ent.pro_access_until else None
+            return Response(
+                {
+                    "detail": "Langganan akan berhenti di akhir masa berlaku. Sampai saat itu paket Anda tetap aktif.",
+                    "cancel_at_period_end": True,
+                    "plan": ent.plan,
+                    "pro_access_until": until_iso,
+                    "payment_status": ent.payment_status,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        if intent == "downgrade":
+            if not subscription_is_active(ent):
+                return Response(
+                    {"error": "Langganan tidak aktif."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if ent.plan == LearnerEntitlement.Plan.FREE:
+                return Response(
+                    {"error": "Paket Anda sudah Free."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if plan_code in ("", LearnerEntitlement.Plan.FREE.value):
+                return Response(
+                    {
+                        "error": "Untuk kembali ke Free gunakan pembatalan langganan (intent cancel).",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            allowed = _downgrade_target_plan_codes(ent.plan)
+            if plan_code not in allowed:
+                return Response(
+                    {
+                        "error": "Downgrade ke paket ini tidak diizinkan.",
+                        "allowed": allowed,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if plan_code not in valid_paid_plan_codes():
+                return Response(
+                    {"error": "Kode paket tidak aktif di katalog."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            old = ent.plan
+            ent.plan = plan_code
+            ent.pending_plan_code = ""
+            ent.cancel_at_period_end = False
+            ent.payment_status = LearnerEntitlement.PaymentStatus.ACTIVE
+            ent.save(
+                update_fields=[
+                    "plan",
+                    "pending_plan_code",
+                    "cancel_at_period_end",
+                    "payment_status",
+                    "updated_at",
+                ]
+            )
+            logger.info(
+                "Subscription downgrade user_id=%s %s -> %s",
+                request.user.pk,
+                old,
+                plan_code,
+            )
+            until = ent.pro_access_until.isoformat() if ent.pro_access_until else None
+            return Response(
+                {
+                    "detail": "Paket diturunkan. Masa berlaku langganan tidak diubah.",
+                    "plan": plan_code,
+                    "pro_access_until": until,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {
+                "error": "Field intent wajib: cancel, revoke_cancel, atau downgrade (dengan plan_code untuk downgrade).",
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class MeEntitlementView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -189,6 +363,32 @@ class MeEntitlementView(APIView):
         active = subscription_is_active(ent)
         plan = effective_plan_label(user)
         limit = effective_chat_daily_limit(user)
+        pending_raw = (ent.pending_plan_code or "").strip()
+        pending_out = (
+            None
+            if ent.payment_status == LearnerEntitlement.PaymentStatus.ACTIVE
+            else (pending_raw or None)
+        )
+        downgrade_options: list[dict[str, str]] = []
+        if active and ent.plan in (
+            LearnerEntitlement.Plan.GO,
+            LearnerEntitlement.Plan.PLUS,
+            LearnerEntitlement.Plan.PRO,
+        ):
+            for code in _downgrade_target_plan_codes(ent.plan):
+                row = find_plan(code)
+                downgrade_options.append(
+                    {"code": code, "title": (row or {}).get("title") or code}
+                )
+        can_manage = bool(
+            active
+            and ent.plan
+            in (
+                LearnerEntitlement.Plan.GO,
+                LearnerEntitlement.Plan.PLUS,
+                LearnerEntitlement.Plan.PRO,
+            )
+        )
         return Response(
             {
                 "plan": plan,
@@ -196,9 +396,12 @@ class MeEntitlementView(APIView):
                 "subscribed_plan": ent.plan if active else None,
                 "pro_access_until": ent.pro_access_until.isoformat() if ent.pro_access_until else None,
                 "payment_status": ent.payment_status,
-                "pending_plan_code": ent.pending_plan_code or None,
+                "pending_plan_code": pending_out,
                 "chat_daily_message_limit": limit,
                 "demo_payment_enabled": bool(getattr(settings, "BILLING_DEMO_PAYMENT_ENABLED", False)),
+                "can_manage_subscription": can_manage,
+                "downgrade_plan_options": downgrade_options,
+                "cancel_at_period_end": bool(ent.cancel_at_period_end),
             }
         )
 

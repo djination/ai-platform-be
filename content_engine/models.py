@@ -125,6 +125,9 @@ class ChatSession(models.Model):
         related_name="chat_sessions",
     )
     session_key = models.CharField(max_length=64)
+    title = models.CharField(max_length=200, blank=True, default="")
+    is_archived = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -213,6 +216,10 @@ class LearnerEntitlement(models.Model):
         null=True,
         blank=True,
         help_text="UTC sampai langganan berlaku (diisi setelah pembayaran terverifikasi).",
+    )
+    cancel_at_period_end = models.BooleanField(
+        default=False,
+        help_text="User meminta berhenti di akhir pro_access_until; sampai saat itu paket tetap aktif.",
     )
     stripe_customer_id = models.CharField(max_length=255, blank=True, default="")
     stripe_subscription_id = models.CharField(max_length=255, blank=True, default="")
